@@ -28,6 +28,7 @@ class User extends Authenticatable
     }
 
 
+
     // Automatically create a wallet for the user after creation
     protected static function booted()
     {

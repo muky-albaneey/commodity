@@ -15,11 +15,20 @@ class UserController extends Controller
     }
 
     // View a single user with their wallet
-    public function show($id)
-    {
-        $user = User::with('wallet')->findOrFail($id);  // Eager load wallet
-        return response()->json($user, 200);
-    }
+    // public function show($id)
+    // {
+    //     $user = User::with('wallet')->findOrFail($id);  // Eager load wallet
+    //     return response()->json($user, 200);
+    // }
+
+    // View a single user with their wallet and trades
+        public function show($id)
+        {
+            // Eager load both 'wallet' and 'trades' relationships
+            $user = User::with('wallet', 'trades')->findOrFail($id);
+            return response()->json($user, 200);
+        }
+
 
     // Create a new user
     public function store(Request $request)

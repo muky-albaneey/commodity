@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
+            $table->string('image')->nullable(); 
             $table->decimal('price', 15, 2);  // Price of the commod
             $table->timestamps();
         });
