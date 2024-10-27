@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('trades', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('commodity_id')->constrained()->onDelete('cascade');
+            // $table->foreignId('commodity_id')->constrained()->onDelete('cascade');
+            $table->uuid('commodity_id');
+            $table->foreign('commodity_id')->references('id')->on('commodities')->onDelete('cascade'); // Explicitly define foreign key constraint
             $table->enum('trade_type', ['buy', 'sell']);
             $table->integer('quantity');
             $table->decimal('total_price', 10, 2);

@@ -53,6 +53,16 @@ use Illuminate\Http\Request;
 
 class WalletController extends Controller
 {
+
+    public function index()
+    {
+        $wallets = Wallet::all();
+
+        return response()->json([
+            'wallets' => $wallets,
+        ], 200);
+    }
+
     // Fund the wallet
     public function fund(Request $request, $userId)
     {

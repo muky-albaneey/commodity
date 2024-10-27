@@ -12,9 +12,20 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('firstName');
+            $table->string('lastName');
             $table->string('email')->unique();
             $table->string('password');
+            $table->string('organization')->nullable();
+            $table->string('phoneNumber')->nullable();
+            $table->string('address')->nullable();
+            $table->string('state')->nullable();
+            $table->string('zipCode')->nullable();
+            $table->string('country')->nullable();
+            $table->string('language')->nullable();
+            $table->string('currency')->nullable();
+            $table->boolean('isAdmin')->nullable();
+            $table->boolean('isSuspend')->nullable();
             $table->timestamps();
         });
 

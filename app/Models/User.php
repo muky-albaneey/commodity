@@ -10,10 +10,7 @@ class User extends Authenticatable
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
+    protected $guarded = [
     ];
 
     // Relationship with Wallet
@@ -40,4 +37,3 @@ class User extends Authenticatable
         });
     }
 }
-
