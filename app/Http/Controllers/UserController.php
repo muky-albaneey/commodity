@@ -124,35 +124,80 @@ class UserController extends Controller
         ], 201);
     }
     
+    // public function update(Request $request, $id)
+    // {
+    //     // Find the user by ID or fail
+    //     $user = User::findOrFail($id);
+
+    //     // Validate only the fields that are being updated
+    //     $request->validate([
+    //         'name' => 'sometimes|string|max:255',
+    //         'email' => 'sometimes|string|email|max:255|unique:users,email,' . $id,
+    //         'password' => 'sometimes|string|min:6',
+    //     ]);
+
+    //     // Update the user with the validated data
+    //     $user->update($request->only(['name', 'email']));
+
+    //     // If a password is provided, hash it and update it
+    //     if ($request->filled('password')) {
+    //         $user->password = Hash::make($request->input('password'));
+    //     }
+
+    //     // Save changes to the user
+    //     $user->save();
+
+    //     // Return a JSON response with the updated user data
+    //     return response()->json([
+    //         'message' => 'User updated successfully',
+    //         'user' => $user->load('wallet'),  // Load the wallet in the response
+    //     ], 200);
+    // }
     public function update(Request $request, $id)
     {
-        // Find the user by ID or fail
-        $user = User::findOrFail($id);
-
-        // Validate only the fields that are being updated
-        $request->validate([
-            'name' => 'sometimes|string|max:255',
+        // Validate request data
+        $validatedData = $request->validate([
+            'firstName' => 'sometimes|string|max:255',
+            'lastName' => 'sometimes|string|max:255',
             'email' => 'sometimes|string|email|max:255|unique:users,email,' . $id,
             'password' => 'sometimes|string|min:6',
+            'organization' => 'sometimes|nullable|string|max:255',
+            'phoneNumber' => 'sometimes|nullable|string|max:255',
+            'address' => 'sometimes|nullable|string|max:255',
+            'state' => 'sometimes|nullable|string|max:255',
+            'zipCode' => 'sometimes|nullable|string|max:20',
+            'country' => 'sometimes|nullable|string|max:255',
+            'language' => 'sometimes|nullable|string|max:255',
+            'currency' => 'sometimes|nullable|string|max:255',
+            'isAdmin' => 'sometimes|boolean',
+            'isSuspend' => 'sometimes|boolean',
+            // Ensure trades is not included in the validation
         ]);
-
-        // Update the user with the validated data
-        $user->update($request->only(['name', 'email']));
-
-        // If a password is provided, hash it and update it
+    
+        // Find the user by ID or fail
+        $user = User::findOrFail($id);
+    
+        // Update all fields provided in the request except the password and wallet
+        // Exclude 'trades' explicitly
+        $user->fill($request->except(['password', 'wallet', 'trades']));
+    
+        // Update the password if provided, hashing it directly
         if ($request->filled('password')) {
-            $user->password = Hash::make($request->input('password'));
+            $user->password = Hash::make($request->password);
         }
-
+    
         // Save changes to the user
         $user->save();
-
-        // Return a JSON response with the updated user data
+    
+        // Return a JSON response with the updated user data, including the wallet
         return response()->json([
             'message' => 'User updated successfully',
-            'user' => $user->load('wallet'),  // Load the wallet in the response
+            'user' => $user->load('wallet'),  // Eager load wallet in the response
         ], 200);
     }
+    
+    
+
     public function isSuspend(Request $request, $id)
     {
         $user = User::findOrFail($id);
