@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // 'stripe/*',
             // 'http://example.com/foo/bar',
             'http://127.0.0.1:8000/*',
+            'http://127.0.0.1:3000/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -124,35 +124,6 @@ class UserController extends Controller
         ], 201);
     }
     
-    // public function update(Request $request, $id)
-    // {
-    //     // Find the user by ID or fail
-    //     $user = User::findOrFail($id);
-
-    //     // Validate only the fields that are being updated
-    //     $request->validate([
-    //         'name' => 'sometimes|string|max:255',
-    //         'email' => 'sometimes|string|email|max:255|unique:users,email,' . $id,
-    //         'password' => 'sometimes|string|min:6',
-    //     ]);
-
-    //     // Update the user with the validated data
-    //     $user->update($request->only(['name', 'email']));
-
-    //     // If a password is provided, hash it and update it
-    //     if ($request->filled('password')) {
-    //         $user->password = Hash::make($request->input('password'));
-    //     }
-
-    //     // Save changes to the user
-    //     $user->save();
-
-    //     // Return a JSON response with the updated user data
-    //     return response()->json([
-    //         'message' => 'User updated successfully',
-    //         'user' => $user->load('wallet'),  // Load the wallet in the response
-    //     ], 200);
-    // }
     public function update(Request $request, $id)
     {
         // Validate request data
