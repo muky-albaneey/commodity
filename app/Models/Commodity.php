@@ -3,44 +3,38 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str; // Import Str for UUID generation
+use Illuminate\Support\Str;
 
 class Commodity extends Model
 {
     /** @use HasFactory<\Database\Factories\CommodityFactory> */
     use HasFactory;
 
-    // Define fillable properties
     protected $fillable = [
-    
         'name',                // Name of the commodity
+        'symbol',              // Trading symbol (e.g., SMAZ for Maize)
         'description',         // Description of the commodity
-        'image',               // Image path for the commodity
-        'price',               // Price of the commodity
-        'market_price',        // Current market price, can fluctuate
-        'category',            // Category like precious metals, agriculture, etc.
-        'unit',                // Unit of measurement, e.g., kg, oz
-        'stock',               // Available stock quantity
-        'origin_country',      // Country of origin
-        'supplier',            // Supplier name or company
-        // 'last_purchased_at',   // Timestamp of the last purchase
-        'expiry_date',         // Expiry date if applicable
-        // 'tags',                // Tags related to the commodity
-        'rating',              // Average rating, e.g., 4.8
-        'reviews_count'        // Count of reviews
+        'image',              // Image path for the commodity
+        'minimum_quantity',    // Minimum tradeable quantity
+        'maximum_quantity',    // Maximum tradeable quantity
+        'category',           // Category (Grains, Oilseeds, etc.)
+        'specifications',     // Technical specifications (JSON)
+        'trading_hours',      // Trading hours in WAT
+        'settlement_type',    // Settlement type (T+2, T+3)
+        'contract_size',      // Standard contract size
+        'status'             // active/inactive
     ];
-    
- 
+
     protected $casts = [
-        'price' => 'decimal:2',
-        'market_price' => 'decimal:2',
-        'rating' => 'decimal:2', // Cast to decimal with 2 decimal places
-        'expiry_date' => 'date',
+        'specifications' => 'array',
+        'minimum_quantity' => 'integer',
+        'maximum_quantity' => 'integer',
+        'status' => 'string'
     ];
-    
+
     // Set the primary key type to string for UUID
-    protected $keyType = 'string'; 
-    public $incrementing = false;  // Disable auto-incrementing
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     // Automatically generate UUID on creation
     protected static function boot()
@@ -48,14 +42,83 @@ class Commodity extends Model
         parent::boot();
         static::creating(function ($model) {
             if (empty($model->id)) {
-                $model->id = (string) Str::uuid(); // Generate UUID
+                $model->id = (string) Str::uuid();
             }
         });
     }
 
-    // Define relationship with Trade model
+    // Relationships
+    public function market()
+    {
+        return $this->hasOne(Market::class);
+    }
+
     public function trades()
     {
         return $this->hasMany(Trade::class);
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    // Accessors
+    public function getCurrentPriceAttribute()
+    {
+        return $this->market?->market_price ?? 0;
+    }
+
+    public function getBestBuyAttribute()
+    {
+        return $this->market?->best_buy ?? 0;
+    }
+
+    public function getBestSellAttribute()
+    {
+        return $this->market?->best_sell ?? 0;
+    }
+
+    public function get24hChangeAttribute()
+    {
+        return $this->market?->change_24h ?? 0;
+    }
+
+    public function get24hVolumeAttribute()
+    {
+        return $this->market?->volume_24h ?? 0;
+    }
+
+    public function getMarketValueAttribute()
+    {
+        return $this->market?->market_value ?? 0;
+    }
+
+    public function getActiveBuyersAttribute()
+    {
+        return $this->market?->buyers_count ?? 0;
+    }
+
+    public function getActiveSellersAttribute()
+    {
+        return $this->market?->sellers_count ?? 0;
+    }
+
+    // Helper methods
+    public function isTradeableQuantity($quantity): bool
+    {
+        return $quantity >= $this->minimum_quantity && 
+               $quantity <= $this->maximum_quantity;
+    }
+
+    public function isActiveForTrading(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function getContractSizeInMT(): float
+    {
+        return (float) str_replace(' MT', '', $this->contract_size);
     }
 }

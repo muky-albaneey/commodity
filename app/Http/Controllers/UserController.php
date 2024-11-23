@@ -95,7 +95,36 @@ class UserController extends Controller
             ], 400);
         }
     }
+
     
+    public function getCustomer(Request $request, string $customerId)
+    {
+        try{
+    
+            $user = User::where('customerID', $customerId)->first();            
+            
+            if(!$user){
+                return response()->json([
+                    "error" => "Customer not found",
+                    "message" => "Customer not found",
+                ], 404);
+            }
+
+
+            return response()->json([
+                'user' => $user,
+                'message' => 'Customer profile retrieved successfully',
+            ], 200);
+        } catch (\Exception $e){
+            return response()->json([
+                "message" => "Error retrieving customer",
+                "error" => $e->getMessage(),
+            ], 400);
+        }
+        
+    }
+
+
     public function show(Request $request, User $user)
     {
         return response()->json([
@@ -103,7 +132,6 @@ class UserController extends Controller
             'message' => 'User profile retrieved successfully',
         ], 200);
     }
-
 
     public function createUser(Request $request, User $user)
     {
@@ -145,59 +173,99 @@ class UserController extends Controller
         }
     }
 
-    
-    public function suspendUser(Request $request, User $user)
+    public function suspendUser(Request $request)
     {
         try{
-            $user->isSuspend = true;
-            $user->save();
-            return response()->json([
-                "message" => "User suspended successfully",
-                "user" => $user,
-            ], 200);
-        }catch(\Exception $e){
-            return response()->json([
-                "message" => "Error suspending user",
-                "error" => $e->getMessage(),
-            ], 400);
-        }
-    }
+            $customerIds = $request->input('customerIds');
 
-    public function unsuspendUser(Request $request, User $user)
-    {
-        try{
-            $user->isSuspend = false;
-            $user->save();
-            return response()->json([
-                "message" => "User unsuspended successfully",
-                "user" => $user,
-            ], 200);
-        }catch(\Exception $e){
-            return response()->json([
-                "message" => "Error unsuspending user",
-                "error" => $e->getMessage(),
-            ], 400);
-        }
-    }
+            if(!$customerIds){
+                return response()->json([
+                    "message" => "No customer IDs provided",
+                    "error" => "No customer IDs provided",
+                ], 400);
+            }
 
-    public function deleteUser(Request $request, User $user)
-    {
-        try{
             // Check if trying to delete the authenticated user
-            if ($user->id === Auth::id()) {
+            if (in_array(Auth::user()->customerID, $customerIds)) {
+                return response()->json([
+                    'message' => 'You cannot suspend your own account',
+                ], 403);
+            }
+
+            User::whereIn('customerID', $customerIds)->update(['isSuspend' => true]);
+            return response()->json([
+                "message" => "Users suspended successfully",
+            ], 200);
+        }catch(\Exception $e){
+            return response()->json([
+                "message" => "Error suspending users",
+                "error" => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function unsuspendUser(Request $request)
+    {
+        try{    
+            $customerIds = $request->input('customerIds');
+
+            if(!$customerIds){
+                return response()->json([
+                    "message" => "No customer IDs provided",
+                    "error" => "No customer IDs provided",
+                ], 400);
+            }
+
+            // Check if trying to delete the authenticated user
+            if (in_array(Auth::user()->customerID, $customerIds)) {
+                return response()->json([
+                    'message' => 'You cannot unsuspend your own account',
+                ], 403);
+            }
+
+
+            User::whereIn('customerID', $customerIds)->update(['isSuspend' => false]);
+            return response()->json([
+                "message" => "Users unsuspended successfully",
+            ], 200);
+
+        }catch(\Exception $e){
+            return response()->json([
+                "message" => "Error unsuspending users",
+                "error" => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function deleteUsers(Request $request)
+    {
+        try{
+     
+            $customerIds = $request->input('customerIds');
+            
+            if(!$customerIds){
+                return response()->json([
+                    "message" => "No customer IDs provided",
+                    "error" => "No customer IDs provided",
+                ], 400);
+            }
+
+            // Check if trying to delete the authenticated user
+            if (in_array(Auth::user()->customerID, $customerIds)) {
                 return response()->json([
                     'message' => 'You cannot delete your own account',
                 ], 403);
             }
 
-            $user->delete();
+            
+            User::whereIn('customerID', $customerIds)->delete();
 
             return response()->json([
-                'message' => 'User deleted successfully',
+                'message' => 'Users deleted successfully',
             ], 200);
         }catch(\Exception $e){ 
             return response()->json([
-                "message" => "Error deleting user",
+                "message" => "Error deleting users",
                 "error" => $e->getMessage(),
             ], 400);
         }

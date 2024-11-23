@@ -62,6 +62,31 @@ class User extends Authenticatable
         return $this->trades()->count();
     }
 
+    public function bankAccounts()
+    {
+        return $this->hasMany(BankAccount::class);
+    }
+
+    public function kyc()
+    {
+        return $this->hasOne(KYC::class);
+    }
+
+    public function hasCompletedKYC()
+    {
+        return $this->kyc && $this->kyc->status === 'approved';
+    }
+
+    public function hasSetPin()
+    {
+        return !empty($this->pin) && $this->has_set_pin;
+    }
+
+    public function hasBankAccount()
+    {
+        return $this->bankAccounts()->where('is_verified', true)->exists();
+    }
+
     public function getTotalTradeVolumeAttribute()
     {
         return $this->trades()->sum('total_price');
