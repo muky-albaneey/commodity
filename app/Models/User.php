@@ -117,4 +117,10 @@ class User extends Authenticatable
             ]);
         });
     }
+
+    // Add these relationships
+public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 }

@@ -6,6 +6,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MarketController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\AssetManagementController;
+use App\Http\Controllers\WalletController;
+use App\Http\Controllers\BankController;
 // Auth routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -34,4 +37,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/markets', [MarketController::class, 'index']);
     Route::get('/dashboard', [DashboardController::class, 'getStats']);
     Route::get('/news', [NewsController::class, 'index']);
+
+    // Asset Management Routes
+    Route::get('/portfolio/overview', [AssetManagementController::class, 'getPortfolioOverview']);
+    Route::get('/portfolio/transactions', [AssetManagementController::class, 'getTransactionHistory']);
+    
+    // Wallet Routes
+    Route::post('/wallet/deposit', [WalletController::class, 'deposit']);
+    Route::post('/wallet/withdraw', [WalletController::class, 'withdraw']);
+    
+    // Bank Routes
+    Route::get('/banks', [BankController::class, 'getBanks']);
+    Route::get('/bank-accounts', [BankController::class, 'getUserBankAccounts']);
+    Route::post('/bank-accounts', [BankController::class, 'addBankAccount']);
 });
