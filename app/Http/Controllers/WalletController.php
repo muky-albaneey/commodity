@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Wallet;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 
 class WalletController extends Controller
@@ -17,26 +18,6 @@ class WalletController extends Controller
         ], 200);
     }
 
-    // Fund the wallet
-    public function fund(Request $request, $userId)
-    {
-        $request->validate([
-            'amount' => 'required|numeric|min:1',
-        ]);
-
-        // Since every user should have a wallet, use firstOrFail.
-        $wallet = Wallet::where('user_id', $userId)->firstOrFail();
-
-        // Update the wallet balance
-        $wallet->balance += $request->amount;
-        $wallet->save();
-
-        return response()->json([
-            'message' => 'Wallet funded successfully',
-            'balance' => $wallet->balance,
-        ], 200);
-    }
-
     // Show wallet balance
     public function show($userId)
     {
@@ -44,14 +25,15 @@ class WalletController extends Controller
 
         return response()->json([
             'balance' => $wallet->balance,
+            'available_balance' => $wallet->available_balance,
+            'lien_balance' => $wallet->lien_balance
         ], 200);
     }
 
     public function deposit(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:100',
-            'bank_account_id' => 'required|exists:bank_accounts,id'
+            'amount' => 'required|numeric|min:100'
         ]);
 
         $user = $request->user();
@@ -62,8 +44,8 @@ class WalletController extends Controller
             'user_id' => $user->id,
             'type' => 'deposit',
             'amount' => $request->amount,
-            'status' => 'pending',
-            'bank_account_id' => $request->bank_account_id,
+            'status' => 'completed', // Note: This is a temporary status for demo purposes
+            'bank_account_id' => $request->bank_account_id ?? null,
             'transaction_hash' => substr(md5(uniqid()), 0, 12)
         ]);
 
@@ -77,7 +59,7 @@ class WalletController extends Controller
     {
         $request->validate([
             'amount' => 'required|numeric|min:100',
-            'bank_account_id' => 'required|exists:bank_accounts,id'
+            'bank_account' => 'required|exists:bank_accounts,id'
         ]);
 
         $user = $request->user();
@@ -85,7 +67,14 @@ class WalletController extends Controller
 
         if ($wallet->available_balance < $request->amount) {
             return response()->json([
-                'message' => 'Insufficient funds'
+                'message' => 'Insufficient available balance'
+            ], 400);
+        }
+
+        // Place lien on the funds first
+        if (!$wallet->placeLien($request->amount)) {
+            return response()->json([
+                'message' => 'Unable to place hold on funds'
             ], 400);
         }
 
@@ -94,9 +83,9 @@ class WalletController extends Controller
             'user_id' => $user->id,
             'type' => 'withdrawal',
             'amount' => $request->amount,
-            'status' => 'pending',
-            'bank_account_id' => $request->bank_account_id,
-            'transaction_hash' => substr(md5(uniqid()), 0, 12)
+            'status' => 'completed', // Note: This is a temporary status for demo purposes
+            'bank_account_id' => $request->bank_account,
+            'transaction_hash' => Transaction::generateTransactionHash()
         ]);
 
         return response()->json([

@@ -5,12 +5,39 @@ namespace App\Observers;
 use App\Models\Trade;
 use App\Models\Market;
 use Carbon\Carbon;
+use App\Models\Wallet;
 
 class TradeObserver
 {
     public function created(Trade $trade)
     {
         $this->updateMarketData($trade);
+    }
+
+    public function updated(Trade $trade)
+    {
+        if ($trade->isDirty('status')) {
+            $wallet = Wallet::where('user_id', $trade->user_id)->lockForUpdate()->first();
+
+            if ($trade->status === 'completed') {
+                if ($trade->trade_type === 'buy') {
+                    // For buy orders: release lien and deduct actual amount
+                    $wallet->releaseLien($trade->total_price);
+                    $wallet->balance -= $trade->total_price;
+                } else {
+                    // For sell orders: add proceeds to available balance
+                    $wallet->balance += $trade->total_price;
+                    $wallet->available_balance += $trade->total_price;
+                }
+            } elseif ($trade->status === 'failed' || $trade->status === 'cancelled') {
+                if ($trade->trade_type === 'buy') {
+                    // Release the lien if trade fails or is cancelled
+                    $wallet->releaseLien($trade->total_price);
+                }
+            }
+
+            $wallet->save();
+        }
     }
 
     private function updateMarketData(Trade $trade)

@@ -40,7 +40,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Asset Management Routes
     Route::get('/portfolio/overview', [AssetManagementController::class, 'getPortfolioOverview']);
-    Route::get('/portfolio/transactions', [AssetManagementController::class, 'getTransactionHistory']);
     
     // Wallet Routes
     Route::post('/wallet/deposit', [WalletController::class, 'deposit']);

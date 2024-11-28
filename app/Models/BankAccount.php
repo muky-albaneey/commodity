@@ -14,7 +14,7 @@ class BankAccount extends Model
         'bank_name',
         'account_number',
         'account_name',
-        'bank_code',
+        'bank_id',
         'is_default',
         'is_verified'
     ];

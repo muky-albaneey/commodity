@@ -26,8 +26,9 @@ class BankController extends Controller
 
     public function addBankAccount(Request $request)
     {
+
         $request->validate([
-            'bank_id' => 'required|exists:banks,id',
+            'bank_id' => 'required',
             'account_number' => 'required|string|size:10',
             'account_name' => 'required|string'
         ]);
@@ -39,7 +40,7 @@ class BankController extends Controller
             'bank_id' => $request->bank_id,
             'account_number' => $request->account_number,
             'account_name' => $request->account_name,
-            'is_verified' => false
+            'is_verified' => true
         ]);
 
         return response()->json([
